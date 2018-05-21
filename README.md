@@ -1,8 +1,8 @@
 # voronoi-europe
 <html>
   <head>
-    <big>What if European countries were determined by how close they were to another capital?
-    </big>
+    <font size = "7">What if European countries were determined by how close they were to another capital?
+    </font>
   </head>
   
   <body>
