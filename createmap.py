@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi
 
 original_dir = os.getcwd()
-file_path = original_dir + '/ne_10m_admin_0_countries'
+file_path = original_dir + '/gis files'
 file_name = 'ne_10m_admin_0_countries.shp'
 X_RANGE, Y_RANGE = (-25,41), (35,72)
 
