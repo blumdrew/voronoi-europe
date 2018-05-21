@@ -9,7 +9,7 @@
     <p>
       Well wonder no more! Created using geopandas, with shapely as the main library for processing geometric shapes. Used scipy's voronoi functionality to determine the boundaries
   </p>
-  <img src = "vornoi europe.png">
+  <img src = "europe voronoi.png">
   </body>
 
 
