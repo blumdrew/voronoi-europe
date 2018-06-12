@@ -10,8 +10,12 @@
       Well wonder no more! Created using geopandas, with shapely as the main library for processing geometric shapes. Used scipy's voronoi functionality to determine the boundaries
   </p>
   <img src = "europe voronoi.png">
+    <p>
+      Also incuded for a slightly larger region, and instead of capitals, cities with one million or more people
+  </p>
+  <img src = "onemil.png">
   </body>
-
+  
 
 
 </html>
