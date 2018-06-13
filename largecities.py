@@ -15,8 +15,7 @@ from scipy.spatial import Voronoi
 original_dir = os.getcwd()
 file_path = original_dir + '/ne_50m_admin_0_countries'
 file_name = 'ne_50m_admin_0_countries.shp'
-X_RANGE, Y_RANGE = (-25,60), (30,72)
-
+X_RANGE, Y_RANGE = (-25,63), (29,72)
 
 def read_gis():
     
@@ -24,7 +23,8 @@ def read_gis():
     data = gpd.read_file(file_name)
     data_europe = data[data.REGION_WB == 'Europe & Central Asia']
     data_middle_east = data[data.REGION_WB == 'Middle East & North Africa']
-    data = pd.concat((data_europe, data_middle_east))
+    data_afghan = data[data.ADMIN == 'Afghanistan']
+    data = pd.concat((data_europe, data_middle_east, data_afghan))
     data = data.to_crs(epsg = 3395)
     os.chdir(original_dir)
     for col in data:
@@ -38,16 +38,12 @@ def voronoi_tesselation(region = read_gis()):
     region['points'] = None
     region['city'] = None
 
-    #read locations of city from file
-    with open('topcities.txt','r') as f:
-        city_locs = []
-        for line in f:
-            line_data = line.split(',')
-            name = line_data[0]
-            x = float(line_data[1][2:])
-            y = float(line_data[2][:-2])
-            city_locs.append((name, (x,y)))
-
+    #read locations of city from file with pandas
+    top_cities = pd.read_csv('europe_1mil.csv')
+    x, y = top_cities['mercx'].tolist(), top_cities['mercy'].tolist()
+    name = top_cities['city_ascii'].tolist()
+    city_locs = [(name[index], (float(x[index]), float(y[index]))) for index in range(len(name))]
+    
     points = [item[1] for item in city_locs]
     #add four extra points to later ignore
     points.append((-500000000,-500000000))
@@ -89,8 +85,11 @@ def voronoi_tesselation(region = read_gis()):
         geom = BaseGeometry.intersection(current_vor.buffer(0),
                                          region_shape.buffer(0))
         region.at[index, 'geometry'] = geom
-        extras.append((index, geom))
-        region.loc[index, 'color'] = index % 20
+        current_city = region.loc[index]['city']
+        if current_city == 'Hamburg' or current_city == 'Rome' or current_city == 'Alexandria':
+            region.loc[index, 'color'] = 14
+        else:
+            region.loc[index, 'color'] = int(index % 20)
     
     return region.to_crs(epsg = 4326)
 
@@ -101,14 +100,12 @@ def plot_maker(vframe, geo_frame):
 
     if vframe.crs['init'] != 'epsg:4326':
         vframe = vframe.to_crs(epsg = 4326)
-
-    with open('topcityranks.txt','r') as f:
-        city_data = []
-        for line in f:
-            city = line.split(',')[0]
-            y = float(line.split(',')[1][2:])
-            x = float(line.split(',')[2][:-2])
-            city_data.append((city,(x,y)))
+    
+    #read in city locations from csv
+    top_cities = pd.read_csv('europe_1mil.csv')
+    x, y = top_cities['lng'].tolist(), top_cities['lat'].tolist()
+    name = top_cities['city_ascii'].tolist()
+    city_data = [(name[index], (float(x[index]), float(y[index]))) for index in range(len(name))]
 
     plt.figure(dpi = 1000)
     ax = plt.gca()
@@ -118,12 +115,17 @@ def plot_maker(vframe, geo_frame):
     ax.axis('off')
     for city in city_data:
         city_name = city[0]
+        plt.annotate(city_name, city[1], fontsize = 3)
         plt.plot(city[1][0], city[1][1], 'ko', markersize = 0.5)
 
     geo_frame.plot(ax = ax, edgecolor = 'black', facecolor = 'None', linewidth = 0.1, zorder = 2)
     vframe.plot(ax = ax, cmap = 'tab20', column = 'color', zorder = 1)
-    plt.savefig('onemil.png', bbox_inches = 'tight')
+    plt.savefig('onemilanno.png', bbox_inches = 'tight')
 
-    
-    
+def main():   
+    v, g = voronoi_tesselation(), read_gis()
+    plot_maker(v,g)
+
+if __name__ == '__main__':
+    main()
     
