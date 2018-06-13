@@ -1,4 +1,4 @@
-# voronoi-europe
+# Voronoi Europe
 <html>
   <head>
     <font size = "7">What if European countries were determined by how close they were to another capital?
