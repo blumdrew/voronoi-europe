@@ -4,13 +4,16 @@ Europe/middle east area with closest city of ~1 million people
 
 '''
 import os
+from random import randint
 
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Polygon, Point, MultiPolygon
 from shapely.geometry.base import BaseGeometry
 import matplotlib.pyplot as plt
+from matplotlib.transforms import Bbox
 from scipy.spatial import Voronoi
+
 
 original_dir = os.getcwd()
 file_path = original_dir + '/ne_50m_admin_0_countries'
@@ -86,22 +89,45 @@ def voronoi_tesselation(region = read_gis()):
                                          region_shape.buffer(0))
         region.at[index, 'geometry'] = geom
         current_city = region.loc[index]['city']
-        if current_city == 'Hamburg' or current_city == 'Rome' or current_city == 'Alexandria':
-            region.loc[index, 'color'] = 14
+        color_1 = ['Dublin','London','Hamburg','Warsaw','Mannheim','Munich',
+                   'Marseille', 'Rabat','Rome','Budapest','Athens','Bursa',
+                   'Adana','El Giza','Amman','Karaj','Shiraz','Moscow',
+                   'Yekaterinburg']
+        color_2 = ['Birmingham','Paris','Essen','Madrid','Milan','Stockholm',
+                   'Kiev','Nizhny Novgorod','Istanbul','Aleppo','Tel Aviv-Yafo',
+                   'Baghdad','Tbilisi','Tehran','Chelyabinsk']
+        color_3 = ['Lisbon','Copenhagen','Frankfurt','Turin','Algiers','Belgrade',
+                   'Katowice','St. Petersburg','Kharkiv','Kazan','Tabriz',
+                   'Kuwait','Cairo','Beirut','Ankara']
+        color_4 = ['Brussels','Stuttgart','Tunis','Vienna','Alexandria','Minsk',
+                   'Izmir','Rostov','Yerevan','Damascus','Mashhad']
+        color_5 = ['Barcelona','Berlin','Bucharest','Naples','Tripoli','Mosul',
+                   'Isfahan','Baku', 'Manchester','Casablanca']
+                   
+                   
+        if current_city in color_1:
+            region.loc[index, 'color'] = 1
+        elif current_city in color_2:
+            region.loc[index, 'color'] = 2
+        elif current_city in color_3:
+            region.loc[index, 'color'] = 3
+        elif current_city in color_4:
+            region.loc[index, 'color'] = 4
+        elif current_city in color_5:
+            region.loc[index, 'color'] = 5
         else:
-            region.loc[index, 'color'] = int(index % 20)
+            region.loc[index, 'color'] = 6
     
     return region.to_crs(epsg = 4326)
 
 #both frames need to be in epsg 4326
-def plot_maker(vframe, geo_frame):
+def plot_maker(vframe, geo_frame, color_map = 'tab20'):
     if geo_frame.crs['init'] != 'epsg:4326':
         geo_frame = geo_frame.to_crs(epsg = 4326)
 
     if vframe.crs['init'] != 'epsg:4326':
         vframe = vframe.to_crs(epsg = 4326)
-    
-    #read in city locations from csv
+
     top_cities = pd.read_csv('europe_1mil.csv')
     x, y = top_cities['lng'].tolist(), top_cities['lat'].tolist()
     name = top_cities['city_ascii'].tolist()
@@ -115,17 +141,16 @@ def plot_maker(vframe, geo_frame):
     ax.axis('off')
     for city in city_data:
         city_name = city[0]
-        plt.annotate(city_name, city[1], fontsize = 3)
+        #plt.annotate(city_name, city[1], fontsize = 3)
         plt.plot(city[1][0], city[1][1], 'ko', markersize = 0.5)
 
     geo_frame.plot(ax = ax, edgecolor = 'black', facecolor = 'None', linewidth = 0.1, zorder = 2)
-    vframe.plot(ax = ax, cmap = 'tab20', column = 'color', zorder = 1)
-    plt.savefig('onemilanno.png', bbox_inches = 'tight')
+    vframe.plot(ax = ax, column = 'color',cmap = color_map, zorder = 1)
+    plt.savefig('onemilano.png', bbox_inches = 'tight', pad_inches = 0)
 
-def main():   
+ def main():
     v, g = voronoi_tesselation(), read_gis()
-    plot_maker(v,g)
-
+    plot_maker(v,g,'viridis_r')
+    
 if __name__ == '__main__':
     main()
-    
